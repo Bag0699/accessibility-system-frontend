@@ -2,7 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
-import { TeacherDashboardPage, StudentJoinPage, RootRedirect } from './pages/PlaceholderPages';
+import TeacherDashboardPage from './pages/TeacherDashboardPage';
+import { StudentJoinPage, RootRedirect } from './pages/PlaceholderPages';
 
 function App() {
   return (
