@@ -2,6 +2,11 @@ import { api } from './api';
 import type { SessionResponse, TranscriptionResponse } from '../types';
 
 export const transcriptionService = {
+  getAllTeacherSessions: async (): Promise<SessionResponse[]> => {
+    const response = await api.get<SessionResponse[]>('/courses/history');
+    return response.data;
+  },
+
   getCourseHistory: async (courseId: string): Promise<SessionResponse[]> => {
     const response = await api.get<SessionResponse[]>(`/courses/${courseId}/history`);
     return response.data;
