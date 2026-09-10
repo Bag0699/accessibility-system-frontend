@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 import type { TranscriptionMessageRequest } from '../types';
 
 interface UseStompProps {
@@ -11,11 +12,11 @@ export const useStomp = ({ sessionCode }: UseStompProps) => {
   const clientRef = useRef<Client | null>(null);
 
   useEffect(() => {
-    // Usamos la URL base del entorno (ej. ws://localhost:8080/ws)
     const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8080/ws';
+    const sockJsUrl = wsUrl.replace('ws://', 'http://').replace('wss://', 'https://').replace('/ws', '/ws-sockjs');
 
     const client = new Client({
-      brokerURL: wsUrl,
+      webSocketFactory: () => new SockJS(sockJsUrl),
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
