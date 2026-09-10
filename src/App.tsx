@@ -4,7 +4,9 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
 import TeacherDashboardPage from './pages/TeacherDashboardPage';
 import TeacherLivePage from './pages/TeacherLivePage';
-import { StudentJoinPage, RootRedirect } from './pages/PlaceholderPages';
+import StudentJoinPage from './pages/StudentJoinPage';
+import StudentLivePage from './pages/StudentLivePage';
+import { RootRedirect } from './pages/PlaceholderPages';
 
 function App() {
   return (
@@ -29,8 +31,8 @@ function App() {
           {/* Rutas Protegidas del Estudiante */}
           <Route element={<ProtectedRoute allowedRole="STUDENT" />}>
             <Route path="/student/join" element={<StudentJoinPage />} />
-            {/* Paso 6: Sala de subtítulos en vivo se agregará aquí */}
-            {/* <Route path="/student/session/:code" element={<StudentLivePage />} /> */}
+            {/* Paso 6: Sala de subtítulos en vivo */}
+            <Route path="/student/session/:code" element={<StudentLivePage />} />
           </Route>
 
           {/* Fallback: cualquier ruta no encontrada redirige a la raíz */}
