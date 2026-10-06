@@ -18,8 +18,8 @@ const StudentJoinPage = () => {
     try {
       setError(null);
       setIsLoading(true);
-      // Validamos si la sesión existe y está activa
-      const session = await sessionService.getSessionByCode(cleanCode);
+      // El endpoint registra la asistencia y devuelve la sesión.
+      const session = await sessionService.joinSession(cleanCode);
       
       if (!session.isActive) {
         setError('Esta sesión ya ha finalizado.');
