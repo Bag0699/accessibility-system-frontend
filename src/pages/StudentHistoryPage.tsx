@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { CalendarClock, Clock3, History, Loader2 } from 'lucide-react';
 import StudentLayout from '../components/student/StudentLayout';
 import { sessionService } from '../services/sessionService';
@@ -59,9 +60,11 @@ const StudentHistoryPage = () => {
         ) : (
           <div className="space-y-3">
             {sessions.map((session) => (
-              <article
+              <Link
                 key={`${session.sessionId}-${session.joinedAt}`}
-                className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5 shadow-sm"
+                to={`/student/history/${encodeURIComponent(session.code)}`}
+                aria-label={`Ver transcripción de ${session.courseName}, código ${session.code}`}
+                className="block bg-white rounded-xl border border-gray-200 p-4 sm:p-5 shadow-sm hover:border-blue-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
@@ -82,7 +85,7 @@ const StudentHistoryPage = () => {
                     Finalizó: {formatDate(session.endedAt)}
                   </p>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         )}

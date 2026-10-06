@@ -22,6 +22,11 @@ export const sessionService = {
     return response.data;
   },
 
+  getStudentSessionByCode: async (code: string): Promise<StudentHistoryResponse> => {
+    const response = await api.get<StudentHistoryResponse>(`/student/history/${encodeURIComponent(code)}`);
+    return response.data;
+  },
+
   endSession: async (code: string): Promise<SessionResponse> => {
     const response = await api.put<SessionResponse>(`/sessions/${code}/end`);
     return response.data;
