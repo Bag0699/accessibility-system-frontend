@@ -31,6 +31,31 @@ export interface SessionResponse {
   isActive: boolean;
 }
 
+export interface SessionAttendance {
+  sessionId: string;
+  studentId: string;
+  joinedAt: string;
+  endedAt: string | null;
+}
+
+export interface SessionJoinResponse {
+  id: string;
+  code: string;
+  courseName: string;
+  teacherName: string;
+  isActive: boolean;
+  startedAt: string;
+}
+
+export interface StudentHistoryResponse {
+  sessionId: string;
+  code: string;
+  courseName: string;
+  teacherName: string;
+  joinedAt: string;
+  endedAt: string;
+}
+
 export interface TranscriptionResponse {
   id: string;
   text: string;
