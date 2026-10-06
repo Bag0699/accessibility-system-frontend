@@ -68,6 +68,12 @@ const TeacherDashboardPage = () => {
     });
   };
 
+  const getGreetingName = (fullName?: string) => {
+    if (!fullName) return "";
+    const withoutPrefix = fullName.replace(/^(prof\.|profesor\.|profesora\.|profesor|profesora|dr\.|dra\.|ing\.)\s+/i, "");
+    return withoutPrefix.split(" ")[0] || fullName;
+  };
+
   return (
     <TeacherLayout>
       <div className="p-8">
@@ -75,7 +81,7 @@ const TeacherDashboardPage = () => {
         <div className="flex items-start justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Hola, {user?.name?.split(" ")[0]}
+              Hola, {getGreetingName(user?.name)}
             </h1>
             <p className="text-gray-500 text-sm mt-1">
               {courses.length === 0
