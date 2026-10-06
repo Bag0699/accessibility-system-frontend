@@ -187,9 +187,9 @@ const StudentLivePage = () => {
   const isSupported = docPiP.isSupported || canvasPiP.isSupported;
   const isPiPOpen = docPiP.isPiPOpen || canvasPiP.isPiPOpen;
 
-  const openPiP = () => {
+  const openPiP = (width = 700, height = 180) => {
     if (docPiP.isSupported) {
-      docPiP.openPiP(700, 180);
+      docPiP.openPiP(width, height);
     } else if (canvasPiP.isSupported) {
       canvasPiP.openPiP();
     }

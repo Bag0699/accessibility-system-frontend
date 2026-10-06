@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Download, FileText, Loader2, Calendar } from 'lucide-react';
 import jsPDF from 'jspdf';
