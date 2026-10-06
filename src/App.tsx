@@ -8,6 +8,7 @@ import TeacherSessionDetailsPage from './pages/TeacherSessionDetailsPage';
 import TeacherLivePage from './pages/TeacherLivePage';
 import StudentJoinPage from './pages/StudentJoinPage';
 import StudentHistoryPage from './pages/StudentHistoryPage';
+import StudentSettingsPage from './pages/StudentSettingsPage';
 import StudentLivePage from './pages/StudentLivePage';
 import { RootRedirect } from './pages/PlaceholderPages';
 
@@ -35,6 +36,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRole="STUDENT" />}>
             <Route path="/student/join" element={<StudentJoinPage />} />
             <Route path="/student/history" element={<StudentHistoryPage />} />
+            <Route path="/student/settings" element={<StudentSettingsPage />} />
             {/* Paso 6: Sala de subtítulos en vivo */}
             <Route path="/student/session/:code" element={<StudentLivePage />} />
           </Route>

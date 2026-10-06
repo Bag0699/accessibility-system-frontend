@@ -8,6 +8,7 @@ import { useDocumentPiP } from '../hooks/useDocumentPiP';
 import { useCanvasPiP } from '../hooks/useCanvasPiP';
 import { sessionService } from '../services/sessionService';
 import { transcriptionService } from '../services/transcriptionService';
+import { userService } from '../services/userService';
 import type { TranscriptionResponse } from '../types';
 
 type Theme = 'light' | 'dark' | 'high-contrast';
@@ -156,6 +157,20 @@ const StudentLivePage = () => {
   const [fontSize, setFontSize] = useState<FontSize>('text-2xl');
   const [fontFamily, setFontFamily] = useState<FontFamily>('font-sans');
 
+  useEffect(() => {
+    userService.getPreferences().then((preferences) => {
+      const sizeMap: Record<typeof preferences.fontSize, FontSize> = {
+        small: 'text-lg',
+        medium: 'text-2xl',
+        large: 'text-4xl',
+      };
+      setFontSize(sizeMap[preferences.fontSize]);
+      setTheme(preferences.highContrast ? 'high-contrast' : preferences.theme);
+    }).catch((error) => {
+      console.error('No se pudieron cargar las preferencias de accesibilidad', error);
+    });
+  }, []);
+
   // STOMP Hook
   const { isConnected } = useStompSubscription({
     sessionCode,
@@ -279,7 +294,7 @@ const StudentLivePage = () => {
 
   return (
     <StudentLayout>
-      <div className={`flex-1 flex flex-col relative transition-colors duration-300 ${getThemeClasses()} ${isPiPOpen ? 'opacity-50' : ''}`}>
+      <div className={`min-h-screen flex-1 flex flex-col relative transition-colors duration-300 ${getThemeClasses()} ${isPiPOpen ? 'opacity-50' : ''}`}>
         
         {/* Cabecera / Status */}
         <div className={`px-6 py-3 flex items-center justify-between border-b shrink-0 ${theme === 'high-contrast' ? 'border-yellow-500' : 'border-gray-200/20'}`}>

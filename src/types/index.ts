@@ -56,6 +56,13 @@ export interface StudentHistoryResponse {
   endedAt: string;
 }
 
+export interface UserPreferences {
+  fontSize: 'small' | 'medium' | 'large';
+  highContrast: boolean;
+  theme: 'light' | 'dark';
+  language: string;
+}
+
 export interface TranscriptionResponse {
   id: string;
   text: string;
