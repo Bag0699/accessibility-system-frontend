@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, BookOpen, Shield, GraduationCap } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import type { Role } from "../types";
+import loginShowcase from "../assets/login-showcase.webp";
 
 type AuthMode = "login" | "register";
 
@@ -87,10 +88,12 @@ const AuthPage = () => {
             en el aula mediante transcripción y subtítulos en tiempo real.
           </p>
 
-          <div className="bg-gray-800 rounded-xl h-44 flex items-center justify-center mb-8">
-            <p className="text-gray-500 text-sm italic">
-              Captura de pantalla de sesión activa
-            </p>
+          <div className="bg-gray-800 rounded-xl aspect-video overflow-hidden mb-8">
+            <img
+              src={loginShowcase}
+              alt="Captura de pantalla de sesión activa"
+              className="w-full h-full object-cover object-top"
+            />
           </div>
 
           <div className="flex gap-8">
