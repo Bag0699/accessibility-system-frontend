@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { BookOpen, History, LogOut, MonitorPlay } from 'lucide-react';
+import { BookOpen, History, LogOut, MonitorPlay, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface StudentLayoutProps {
@@ -9,6 +9,7 @@ interface StudentLayoutProps {
 const navItems = [
   { label: 'Unirse a clase', icon: MonitorPlay, to: '/student/join' },
   { label: 'Historial', icon: History, to: '/student/history' },
+  { label: 'Ajustes', icon: Settings, to: '/student/settings' },
 ];
 
 const StudentLayout = ({ children }: StudentLayoutProps) => {
