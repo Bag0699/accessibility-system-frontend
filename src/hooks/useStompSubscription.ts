@@ -6,18 +6,21 @@ import type { TranscriptionResponse } from '../types';
 interface UseStompSubscriptionProps {
   sessionCode: string;
   onNewTranscript?: (transcript: TranscriptionResponse) => void;
+  onSessionEnded?: () => void;
 }
 
-export const useStompSubscription = ({ sessionCode, onNewTranscript }: UseStompSubscriptionProps) => {
+export const useStompSubscription = ({ sessionCode, onNewTranscript, onSessionEnded }: UseStompSubscriptionProps) => {
   const [isConnected, setIsConnected] = useState(false);
   const clientRef = useRef<Client | null>(null);
 
   const onNewTranscriptRef = useRef(onNewTranscript);
+  const onSessionEndedRef = useRef(onSessionEnded);
 
   // Mantener la referencia actualizada sin causar re-renders
   useEffect(() => {
     onNewTranscriptRef.current = onNewTranscript;
-  }, [onNewTranscript]);
+    onSessionEndedRef.current = onSessionEnded;
+  }, [onNewTranscript, onSessionEnded]);
 
   useEffect(() => {
     if (!sessionCode) return;
@@ -45,6 +48,20 @@ export const useStompSubscription = ({ sessionCode, onNewTranscript }: UseStompS
               }
             } catch (err) {
               console.error('Error parseando mensaje STOMP', err);
+            }
+          }
+        });
+
+        // Suscribirse a los cambios de estado (ej. cuando la sesión finaliza)
+        client.subscribe(`/topic/session/${sessionCode}/status`, (message) => {
+          if (message.body) {
+            try {
+              const sessionStatus = JSON.parse(message.body);
+              if (sessionStatus.isActive === false && onSessionEndedRef.current) {
+                onSessionEndedRef.current();
+              }
+            } catch (err) {
+              console.error('Error parseando mensaje STOMP status', err);
             }
           }
         });
