@@ -3,6 +3,8 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
 import TeacherDashboardPage from './pages/TeacherDashboardPage';
+import TeacherHistoryPage from './pages/TeacherHistoryPage';
+import TeacherSessionDetailsPage from './pages/TeacherSessionDetailsPage';
 import TeacherLivePage from './pages/TeacherLivePage';
 import StudentJoinPage from './pages/StudentJoinPage';
 import StudentLivePage from './pages/StudentLivePage';
@@ -22,10 +24,10 @@ function App() {
           {/* Rutas Protegidas del Docente */}
           <Route element={<ProtectedRoute allowedRole="TEACHER" />}>
             <Route path="/teacher/dashboard" element={<TeacherDashboardPage />} />
+            <Route path="/teacher/history" element={<TeacherHistoryPage />} />
+            <Route path="/teacher/history/:code" element={<TeacherSessionDetailsPage />} />
             {/* Paso 4 y 5: Sala en vivo */}
             <Route path="/teacher/session/:code" element={<TeacherLivePage />} />
-            {/* Paso 8: Historial se agregará aquí */}
-            {/* <Route path="/teacher/history" element={<HistoryPage />} /> */}
           </Route>
 
           {/* Rutas Protegidas del Estudiante */}
