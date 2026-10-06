@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { api } from '../services/api';
 
 export interface TranscriptResult {
   text: string;
@@ -25,6 +26,18 @@ export const useLiveTranscription = ({ onFinalTranscript, onInterimTranscript }:
     try {
       setError(null);
 
+      const tokenResponse = await api
+        .get<{ token?: string }>('/transcription/token')
+        .catch((err: unknown) => {
+          const message = (err as { response?: { data?: { message?: string } } })
+            ?.response?.data?.message;
+          throw new Error(message ?? 'No se pudo obtener el token temporal de transcripción.');
+        });
+      const ephemeralToken = tokenResponse.data.token?.trim();
+      if (!ephemeralToken) {
+        throw new Error('El servidor no devolvió un token temporal para la transcripción.');
+      }
+
       // 1. Solicitar acceso al micrófono
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -36,16 +49,11 @@ export const useLiveTranscription = ({ onFinalTranscript, onInterimTranscript }:
       streamRef.current = stream;
 
       // 2. Conectar a Deepgram vía WebSocket
-      const apiKey = import.meta.env.VITE_DEEPGRAM_API_KEY;
-      if (!apiKey) {
-        throw new Error("Falta la API Key de Deepgram en las variables de entorno.");
-      }
-
       // Parámetros: español, formato inteligente, resultados parciales rápidos
       const deepgramUrl = 'wss://api.deepgram.com/v1/listen?model=nova-2&language=es&smart_format=true&interim_results=true';
       
       // Truco oficial de Deepgram para WebSockets en navegadores: enviar el token como subprotocolo
-      const socket = new WebSocket(deepgramUrl, ['token', apiKey]);
+      const socket = new WebSocket(deepgramUrl, ['token', ephemeralToken]);
       socketRef.current = socket;
 
       socket.onopen = () => {
@@ -98,6 +106,7 @@ export const useLiveTranscription = ({ onFinalTranscript, onInterimTranscript }:
 
     } catch (err: unknown) {
       console.error(err);
+      streamRef.current?.getTracks().forEach((track) => track.stop());
       setError((err as Error).message || "Error al acceder al micrófono.");
       setIsRecording(false);
     }
