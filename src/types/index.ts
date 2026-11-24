@@ -75,3 +75,7 @@ export interface TranscriptionMessageRequest {
   startTime: number;
   endTime: number;
 }
+
+export interface SessionPresenceResponse {
+  connectedCount: number;
+}

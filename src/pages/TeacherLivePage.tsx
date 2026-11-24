@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Mic, MicOff, Square, Radio, AlertCircle, Loader2, ArrowLeft, History } from 'lucide-react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Mic, MicOff, Square, Radio, AlertCircle, Loader2, ArrowLeft, History, Users, Copy, Check, FileText } from 'lucide-react';
 import TeacherLayout from '../components/teacher/TeacherLayout';
 import { useStomp } from '../hooks/useStomp';
 import { useLiveTranscription } from '../hooks/useLiveTranscription';
@@ -17,6 +17,8 @@ const TeacherLivePage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSessionActive, setIsSessionActive] = useState<boolean>(false);
   const [courseName, setCourseName] = useState<string>('');
+  const [connectedCount, setConnectedCount] = useState<number>(0);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   // Historial local de textos finales enviados
   const [transcripts, setTranscripts] = useState<TranscriptionResponse[]>([]);
@@ -26,7 +28,10 @@ const TeacherLivePage = () => {
   const endOfListRef = useRef<HTMLDivElement>(null);
 
   // Hook STOMP
-  const { isConnected: isStompConnected, sendTranscription } = useStomp({ sessionCode });
+  const { isConnected: isStompConnected, sendTranscription } = useStomp({
+    sessionCode,
+    onPresenceUpdate: setConnectedCount,
+  });
 
   // Hook Transcripción de Audio
   const {
@@ -72,10 +77,16 @@ const TeacherLivePage = () => {
         setIsSessionActive(session.isActive);
         setCourseName(session.courseName);
 
-        // 2. Traer el historial previo solo si la sesión sigue activa (para reconexiones)
+        // 2. Traer historial y conteo actual si la sesión sigue activa
         if (session.isActive) {
-          const history = await transcriptionService.getSessionTranscriptions(sessionCode);
+          const [history, presence] = await Promise.all([
+            transcriptionService.getSessionTranscriptions(sessionCode),
+            sessionService.getConnectedCount(sessionCode).catch(() => ({ connectedCount: 0 })),
+          ]);
           setTranscripts(history);
+          setConnectedCount(presence.connectedCount);
+        } else {
+          setConnectedCount(0);
         }
       } catch (error) {
         console.error('Error al cargar la sesión', error);
@@ -85,6 +96,23 @@ const TeacherLivePage = () => {
     };
     initSession();
   }, [sessionCode]);
+
+  // Sincronizar conteo inicial al conectar STOMP para evitar ventana entre carga y suscripción
+  useEffect(() => {
+    if (!isStompConnected || !isSessionActive || !sessionCode) return;
+
+    sessionService
+      .getConnectedCount(sessionCode)
+      .then((presence) => setConnectedCount(presence.connectedCount))
+      .catch(() => {});
+  }, [isStompConnected, isSessionActive, sessionCode]);
+
+  const handleCopyCode = () => {
+    if (!sessionCode) return;
+    navigator.clipboard.writeText(sessionCode);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
 
   const handleEndSession = async () => {
     try {
@@ -116,13 +144,26 @@ const TeacherLivePage = () => {
         {/* Cabecera de la Sala */}
         <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
           <div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-xl font-bold text-gray-900 truncate max-w-sm">
                 {courseName || 'Sala en Vivo'}
               </h1>
-              <span className="bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded text-xs font-mono font-semibold tracking-wider shrink-0">
+              <span className="bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded text-xs font-mono font-semibold tracking-wider shrink-0">
                 {sessionCode}
               </span>
+              <button
+                type="button"
+                onClick={handleCopyCode}
+                aria-label="Copiar código de sesión"
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
+                  copiedCode
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {copiedCode ? <Check aria-hidden="true" className="w-3 h-3" /> : <Copy aria-hidden="true" className="w-3 h-3" />}
+                {copiedCode ? 'Copiado' : 'Copiar'}
+              </button>
             </div>
             <p className="text-sm text-gray-500 mt-1">
               Los estudiantes están leyendo esta transcripción en tiempo real.
@@ -131,7 +172,16 @@ const TeacherLivePage = () => {
 
           <div className="flex items-center gap-4">
             {/* Status indicators */}
-            <div className="flex items-center gap-4 text-xs font-medium mr-4">
+            <div className="flex items-center gap-4 text-xs font-medium mr-2">
+              {isSessionActive && (
+                <span
+                  aria-live="polite"
+                  className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full font-semibold"
+                >
+                  <Users aria-hidden="true" className="w-3.5 h-3.5" />
+                  {connectedCount} {connectedCount === 1 ? 'conectado' : 'conectados'}
+                </span>
+              )}
               <span className={`flex items-center gap-1.5 ${isStompConnected ? 'text-green-600' : 'text-orange-500'}`}>
                 <span className={`w-2 h-2 rounded-full ${isStompConnected ? 'bg-green-500' : 'bg-orange-500'}`}></span>
                 Servidor
@@ -184,9 +234,16 @@ const TeacherLivePage = () => {
                 <History className="w-8 h-8 text-gray-400" />
               </div>
               <h2 className="text-lg font-semibold text-gray-700 mb-2">Clase Concluida</h2>
-              <p className="text-center max-w-md">
-                Esta sesión ya ha finalizado. Podrás revisar y exportar todo el registro de la transcripción desde la pestaña de <strong>Historial</strong> próximamente (Paso 8).
+              <p className="text-center max-w-md mb-6">
+                Esta sesión ya ha finalizado. Puedes consultar todo el registro de la transcripción y exportarlo en PDF desde el historial.
               </p>
+              <Link
+                to={`/teacher/history/${encodeURIComponent(sessionCode)}`}
+                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+              >
+                <FileText aria-hidden="true" className="w-4 h-4" />
+                Ver transcripción y exportar PDF
+              </Link>
             </div>
           ) : (
             <>

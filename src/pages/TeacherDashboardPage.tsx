@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { Plus, BookOpen, Clock, ChevronRight, Radio } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import TeacherLayout from "../components/teacher/TeacherLayout";
@@ -105,12 +106,12 @@ const TeacherDashboardPage = () => {
               <h2 className="text-base font-semibold text-gray-800">
                 Sesiones Recientes
               </h2>
-              <a
-                href="/teacher/history"
+              <Link
+                to="/teacher/history"
                 className="text-sm text-blue-600 hover:underline"
               >
                 Ver todas
-              </a>
+              </Link>
             </div>
 
             {isLoadingSessions ? (
@@ -165,12 +166,21 @@ const TeacherDashboardPage = () => {
                         Finalizada
                       </span>
                     )}
-                    <a
-                      href={`/teacher/session/${session.code}`}
-                      className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 group-hover:text-gray-500 transition"
+                    <Link
+                      to={
+                        session.isActive
+                          ? `/teacher/session/${encodeURIComponent(session.code)}`
+                          : `/teacher/history/${encodeURIComponent(session.code)}`
+                      }
+                      aria-label={
+                        session.isActive
+                          ? `Ir a sala en vivo de ${session.courseName}`
+                          : `Ver transcripción de ${session.courseName}`
+                      }
+                      className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 group-hover:text-gray-500 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                     >
-                      <ChevronRight className="w-4 h-4" />
-                    </a>
+                      <ChevronRight aria-hidden="true" className="w-4 h-4" />
+                    </Link>
                   </div>
                 ))}
               </div>
@@ -199,15 +209,16 @@ const TeacherDashboardPage = () => {
             ) : (
               <div className="space-y-2">
                 {courses.map((course) => (
-                  <div
+                  <Link
                     key={course.id}
-                    className="bg-white rounded-xl border border-gray-200 px-4 py-3 flex items-center justify-between group hover:border-blue-300 transition-colors"
+                    to={`/teacher/history?courseId=${encodeURIComponent(course.id)}`}
+                    className="bg-white rounded-xl border border-gray-200 px-4 py-3 flex items-center justify-between group hover:border-blue-300 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                   >
                     <p className="text-sm font-medium text-gray-700 truncate">
                       {course.name}
                     </p>
-                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 shrink-0 transition" />
-                  </div>
+                    <ChevronRight aria-hidden="true" className="w-4 h-4 text-gray-300 group-hover:text-gray-500 shrink-0 transition" />
+                  </Link>
                 ))}
               </div>
             )}

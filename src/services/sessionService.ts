@@ -1,5 +1,10 @@
 import { api } from './api';
-import type { SessionResponse, SessionJoinResponse, StudentHistoryResponse } from '../types';
+import type {
+  SessionJoinResponse,
+  SessionPresenceResponse,
+  SessionResponse,
+  StudentHistoryResponse,
+} from '../types';
 
 export const sessionService = {
   createSession: async (courseId: string): Promise<SessionResponse> => {
@@ -29,6 +34,11 @@ export const sessionService = {
 
   endSession: async (code: string): Promise<SessionResponse> => {
     const response = await api.put<SessionResponse>(`/sessions/${code}/end`);
+    return response.data;
+  },
+
+  getConnectedCount: async (code: string): Promise<SessionPresenceResponse> => {
+    const response = await api.get<SessionPresenceResponse>(`/sessions/${encodeURIComponent(code)}/connected-count`);
     return response.data;
   },
 };

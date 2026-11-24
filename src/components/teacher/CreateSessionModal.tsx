@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { X, ChevronDown, Check, Copy, Loader2 } from 'lucide-react';
 import type { CourseResponse, SessionResponse } from '../../types';
 import { courseService } from '../../services/courseService';
@@ -235,12 +236,12 @@ const CreateSessionModal = ({
             </div>
 
             <div className="flex flex-col gap-2">
-              <a
-                href={`/teacher/session/${createdSession.code}`}
+              <Link
+                to={`/teacher/session/${encodeURIComponent(createdSession.code)}`}
                 className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold text-center transition"
               >
                 ▶ Iniciar transcripción en vivo
-              </a>
+              </Link>
               <button
                 onClick={onClose}
                 className="w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition"
