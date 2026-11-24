@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, CalendarClock, Clock3, FileText, Loader2, Search } from 'lucide-react';
+import { ArrowLeft, CalendarClock, Clock3, Download, FileText, Loader2, Search } from 'lucide-react';
 import StudentLayout from '../components/student/StudentLayout';
 import { sessionService } from '../services/sessionService';
 import { transcriptionService } from '../services/transcriptionService';
+import { exportTranscriptionPdf, formatTranscriptTime } from '../utils/transcriptionPdf';
 import type { StudentHistoryResponse, TranscriptionResponse } from '../types';
 
 const formatDate = (date: string) =>
@@ -11,12 +12,6 @@ const formatDate = (date: string) =>
     dateStyle: 'medium',
     timeStyle: 'short',
   });
-
-const formatTime = (seconds: number) => {
-  const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
-  const remainingSeconds = Math.floor(seconds % 60).toString().padStart(2, '0');
-  return `${minutes}:${remainingSeconds}`;
-};
 
 const StudentSessionDetailsPage = () => {
   const { code = '' } = useParams<{ code: string }>();
@@ -66,6 +61,24 @@ const StudentSessionDetailsPage = () => {
   const filteredTranscripts = transcripts.filter((transcript) =>
     transcript.text.toLocaleLowerCase().includes(normalizedSearch),
   );
+  const endedAtLabel = session?.endedAt ? formatDate(session.endedAt) : 'En curso';
+
+  const handleExportPDF = () => {
+    if (!session) return;
+
+    exportTranscriptionPdf({
+      courseName: session.courseName,
+      code: session.code,
+      metadataLines: [
+        `Curso: ${session.courseName}`,
+        `Docente: ${session.teacherName}`,
+        `Código de Sesión: ${session.code}`,
+        `Te uniste: ${formatDate(session.joinedAt)}`,
+        `Finalizó: ${endedAtLabel}`,
+      ],
+      transcripts,
+    });
+  };
 
   return (
     <StudentLayout>
@@ -90,8 +103,8 @@ const StudentSessionDetailsPage = () => {
                   Te uniste: {formatDate(session.joinedAt)}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Clock3 className="w-4 h-4" />
-                  Finalizó: {formatDate(session.endedAt)}
+                  <Clock3 aria-hidden="true" className="w-4 h-4" />
+                  Finalizó: {endedAtLabel}
                 </span>
                 <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-700">
                   {session.code}
@@ -102,17 +115,29 @@ const StudentSessionDetailsPage = () => {
           </div>
         </header>
 
-        <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="search"
-            aria-label="Buscar en la transcripción"
-            placeholder="Buscar en la transcripción..."
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            disabled={isLoading || Boolean(error)}
-          />
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+          <div className="relative w-full sm:max-w-md">
+            <Search aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="search"
+              aria-label="Buscar en la transcripción"
+              placeholder="Buscar en la transcripción..."
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              disabled={isLoading || Boolean(error)}
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleExportPDF}
+            disabled={!session || isLoading || Boolean(error) || transcripts.length === 0}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+          >
+            <Download aria-hidden="true" className="w-4 h-4" />
+            Exportar PDF
+          </button>
         </div>
 
         <section aria-label="Transcripción de la clase" className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden min-h-96">
@@ -140,7 +165,7 @@ const StudentSessionDetailsPage = () => {
               {filteredTranscripts.map((transcript, index) => (
                 <article key={transcript.id || index} className="flex gap-4 py-4 first:pt-0 last:pb-0">
                   <span className="shrink-0 h-fit text-xs font-mono font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    {formatTime(transcript.startTime || 0)}
+                    {formatTranscriptTime(transcript.startTime || 0)}
                   </span>
                   <p className="flex-1 text-gray-800 leading-relaxed">{transcript.text}</p>
                 </article>

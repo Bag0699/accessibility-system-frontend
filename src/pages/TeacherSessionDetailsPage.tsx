@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Download, FileText, Loader2, Calendar } from 'lucide-react';
-import jsPDF from 'jspdf';
 import TeacherLayout from '../components/teacher/TeacherLayout';
 import { transcriptionService } from '../services/transcriptionService';
+import { exportTranscriptionPdf, formatTranscriptTime } from '../utils/transcriptionPdf';
 import type { SessionResponse, TranscriptionResponse } from '../types';
 
 const TeacherSessionDetailsPage = () => {
@@ -52,65 +52,19 @@ const TeacherSessionDetailsPage = () => {
     t.text.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Función para formatear el timestamp a formato mm:ss
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-    const s = Math.floor(seconds % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-  };
-
   const handleExportPDF = () => {
     if (!sessionInfo) return;
 
-    const doc = new jsPDF();
-    const margin = 15;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    let cursorY = 20;
-
-    // Título y Metadatos
-    doc.setFontSize(22);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Transcripción de Clase`, margin, cursorY);
-    
-    cursorY += 10;
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Curso: ${sessionInfo.courseName}`, margin, cursorY);
-    cursorY += 7;
-    doc.text(`Código de Sesión: ${sessionInfo.code}`, margin, cursorY);
-    cursorY += 7;
-    const dateStr = new Date(sessionInfo.createdAt).toLocaleString();
-    doc.text(`Fecha: ${dateStr}`, margin, cursorY);
-    
-    cursorY += 15;
-    
-    // Separador
-    doc.setLineWidth(0.5);
-    doc.line(margin, cursorY - 5, pageWidth - margin, cursorY - 5);
-
-    doc.setFontSize(11);
-    
-    // Si no hay transcripciones
-    if (transcripts.length === 0) {
-      doc.text('No hubo transcripciones registradas en esta clase.', margin, cursorY + 10);
-    } else {
-      transcripts.forEach((t) => {
-        const timeStr = `[${formatTime(t.startTime || 0)}]`;
-        // Dividir el texto largo en líneas que quepan en la página
-        const textLines = doc.splitTextToSize(`${timeStr} ${t.text}`, pageWidth - margin * 2);
-        
-        // Comprobar si necesitamos nueva página
-        if (cursorY + (textLines.length * 5) > doc.internal.pageSize.getHeight() - 15) {
-          doc.addPage();
-          cursorY = 20; // reset cursor
-        }
-        
-        doc.text(textLines, margin, cursorY);
-        cursorY += textLines.length * 5 + 3; // +3 de espaciado entre párrafos
-      });
-    }
-
-    doc.save(`Transcripcion_${sessionInfo.courseName.replace(/\s+/g, '_')}_${sessionInfo.code}.pdf`);
+    exportTranscriptionPdf({
+      courseName: sessionInfo.courseName,
+      code: sessionInfo.code,
+      metadataLines: [
+        `Curso: ${sessionInfo.courseName}`,
+        `Código de Sesión: ${sessionInfo.code}`,
+        `Fecha: ${new Date(sessionInfo.createdAt).toLocaleString()}`,
+      ],
+      transcripts,
+    });
   };
 
   return (
@@ -193,7 +147,7 @@ const TeacherSessionDetailsPage = () => {
                   {/* Timestamp col */}
                   <div className="shrink-0 pt-1">
                     <span className="text-xs font-mono font-medium text-gray-400 bg-gray-50 px-2 py-1 rounded">
-                      {formatTime(t.startTime || 0)}
+                      {formatTranscriptTime(t.startTime || 0)}
                     </span>
                   </div>
                   {/* Text col */}
