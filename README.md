@@ -1,32 +1,44 @@
-# React + TypeScript + Vite
+# ClaseAccesible — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Interfaz web de **ClaseAccesible**, construida con React 19, TypeScript, Vite y Tailwind CSS v4 para transcripción de clases en tiempo real y subtítulos accesibles.
 
-Currently, two official plugins are available:
+## Funcionalidades principales
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### Docente
+* **Panel y cursos:** Creación de cursos y sesiones con generación de código de acceso (`CreateSessionModal`) y navegación directa al historial por curso.
+* **Sala en vivo (`/teacher/session/:code`):** Captura de audio del micrófono, transcripción en tiempo real mediante Deepgram (con tokens efímeros emitidos por el backend), retransmisión STOMP/SockJS, copia rápida de código y **contador en tiempo real de estudiantes conectados**.
+* **Historial y exportación (`/teacher/history`):** Listado de sesiones con fecha, estado, búsqueda por curso/código, filtro por curso (`?courseId=...`), visor de transcripción con resaltado de términos y exportación a PDF (`jspdf`).
 
-## React Compiler
+### Estudiante
+* **Ingreso y sala de subtítulos en vivo (`/student/join`, `/student/session/:code`):** Unión mediante código con registro automático de asistencia y recepción de subtítulos por WebSocket en tiempo real.
+* **Accesibilidad y modo flotante (PiP):** Ajustes de lectura (tamaño de fuente, tema claro/oscuro/alto contraste y tipografía) y modo Picture-in-Picture (Document PiP en Chromium y fallback por Canvas en navegadores compatibles).
+* **Preferencias persistentes (`/student/settings`):** Configuración guardada de tamaño de fuente, alto contraste, tema e idioma preferido con vista previa en vivo.
+* **Historial y exportación (`/student/history`):** Consulta de clases asistidas, detalle de transcripción con buscador y **descarga en PDF** con metadatos de la sesión y marcas de tiempo.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Variables de entorno
 
-## Expanding the Oxlint configuration
+Copia `.env.example` a `.env` y ajusta las URLs del backend:
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```env
+VITE_API_URL=http://localhost:8080/api
+VITE_WS_URL=ws://localhost:8080/ws
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Desarrollo local
+
+Requiere `pnpm`:
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Otros scripts disponibles en `package.json`:
+
+* `pnpm build`: compila TypeScript (`tsc -b`) y genera el bundle de producción en `dist/`.
+* `pnpm lint`: ejecuta `oxlint`.
+* `pnpm preview`: previsualiza el build de producción.
+
+## Despliegue
+
+El archivo `vercel.json` incluye la regla de reescritura hacia `/index.html` para soportar las rutas SPA de React Router en Vercel.
